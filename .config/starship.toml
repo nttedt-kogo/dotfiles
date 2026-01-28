@@ -1,0 +1,105 @@
+# Starship Configuration - Tokyo Night Theme
+
+format = """
+[](#7aa2f7)\
+$os\
+$username\
+[](bg:#bb9af7 fg:#7aa2f7)\
+$directory\
+[](fg:#bb9af7 bg:#9ece6a)\
+$git_branch\
+$git_status\
+[](fg:#9ece6a bg:#e0af68)\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+[](fg:#e0af68 bg:#7dcfff)\
+$time\
+[ ](fg:#7dcfff)\
+$line_break\
+$character"""
+
+# タイムアウト設定
+command_timeout = 5000
+
+[os]
+disabled = false
+style = "bg:#7aa2f7 fg:#1a1b26"
+format = "[ $symbol ]($style)"
+
+[os.symbols]
+Windows = "󰍲"
+Ubuntu = "󰕈"
+Arch = "󰣇"
+Debian = "󰣚"
+Linux = "󰌽"
+Macos = ""
+
+[username]
+show_always = true
+style_user = "bg:#7aa2f7 fg:#1a1b26"
+style_root = "bg:#7aa2f7 fg:#f7768e"
+format = '[$user ]($style)'
+disabled = false
+
+[directory]
+style = "bg:#bb9af7 fg:#1a1b26"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+"~" = " "
+
+[git_branch]
+symbol = ""
+style = "bg:#9ece6a fg:#1a1b26"
+format = '[ $symbol $branch ]($style)'
+
+[git_status]
+style = "bg:#9ece6a fg:#1a1b26"
+format = '[$all_status$ahead_behind ]($style)'
+
+[nodejs]
+symbol = ""
+style = "bg:#e0af68 fg:#1a1b26"
+format = '[ $symbol ($version) ]($style)'
+
+[python]
+symbol = ""
+style = "bg:#e0af68 fg:#1a1b26"
+format = '[ $symbol ($version) ]($style)'
+
+[rust]
+symbol = ""
+style = "bg:#e0af68 fg:#1a1b26"
+format = '[ $symbol ($version) ]($style)'
+
+[golang]
+symbol = ""
+style = "bg:#e0af68 fg:#1a1b26"
+format = '[ $symbol ($version) ]($style)'
+
+[docker_context]
+symbol = ""
+style = "bg:#e0af68 fg:#1a1b26"
+format = '[ $symbol $context ]($style)'
+
+[time]
+disabled = true
+time_format = "%R"
+style = "bg:#7dcfff fg:#1a1b26"
+format = '[ 󰥔 $time ]($style)'
+
+[line_break]
+disabled = false
+
+[character]
+success_symbol = '[❯](bold #9ece6a)'
+error_symbol = '[❯](bold #f7768e)'
