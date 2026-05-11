@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(gh auth:*)",
+      "Bash(git --version 2>&1 && git config --global --list 2>&1)",
+      "Bash(which gh:*)",
+      "Bash(which git:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)",
+      "Bash(sudo ufw:*)",
+      "Bash(vncserver -kill :10 2>&1)",
+      "Bash(dpkg -l | grep -E \"gnome-session|gnome-flashback|dbus-x11\" 2>&1)",
+      "Bash(cat ~/.vnc/*.log 2>&1 | tail -50)",
+      "Bash(dpkg -l | grep gnome-flashback-metacity 2>&1; ls /usr/share/gnome-session/sessions/ | grep flash 2>&1)",
+      "Bash(which tailscale:*)",
+      "Bash(curl -fsSL https://tailscale.com/install.sh | sh 2>&1)",
+      "Bash(tailscale status:*)",
+      "Bash(docker compose run --rm *)",
+      "Bash(docker compose run *)"
+    ]
+  }
+}

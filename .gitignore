@@ -1,0 +1,3 @@
+# グローバル ~/.config/git/ignore で .claude/settings.local.json が ignore されている。
+# このリポジトリでは dotfiles として symlink 配布したいので negate する。
+!.claude/settings.local.json

@@ -114,3 +114,4 @@ alias grep='grep --color=auto'
 
 # 便利な関数
 mkcd() { mkdir -p "$1" && cd "$1"; }
+export DISPLAY=:10
