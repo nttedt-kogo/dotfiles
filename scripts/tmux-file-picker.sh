@@ -1,50 +1,59 @@
 #!/usr/bin/env bash
-# tmux popup から fzf+rg でファイルを選び、呼び出し元ペインへ送り込む。
-#   - 呼び出し元が AI(claude等) なら "@path" 形式（Claudeのファイル参照記法）
-#   - 通常のシェルなら シェルエスケープ済みのパス
+# tmux popup から fzf でファイルを選び、呼び出し元ペインへ送り込む。
+#   - file モード(既定): rg --files をfzfであいまい検索（batプレビュー）
+#   - grep モード      : rg で全文検索（Ctrl-s で切替。記事のC-s相当）
+# 送信形式: 呼び出し元が AI(claude等) なら "@path"、通常シェルならエスケープ済みパス。
 # 使い方（.tmux.conf）:
-#   bind f display-popup -E -w 80% -h 80% -d '#{pane_current_path}' \
-#     "~/dotfiles/scripts/tmux-file-picker.sh '#{pane_id}'"
-set -euo pipefail
+#   bind -n M-f display-popup -E -w 80% -h 80% -d '#{pane_current_path}' \
+#     "~/dotfiles/scripts/tmux-file-picker.sh"
+set -uo pipefail
 
-# 送信先ペインの特定。
-# display-popup はコマンド文字列内の #{pane_id} を展開しないため、引数が無効なら
-# popup内から「現在アクティブなペイン(=呼び出し元)」を自分で取得する。
-target_pane="${1:-}"
-case "$target_pane" in
-  %[0-9]*) : ;;  # 正しい pane id が渡された場合はそれを使う
-  *) target_pane=$(tmux display-message -p '#{pane_id}') ;;
+SELF="$(realpath "$0")"
+RG_GREP="rg --column --line-number --no-heading --color=always --smart-case"
+
+case "${1:-files}" in
+  # ---- 選択結果を呼び出し元ペインへ送信（enter:become から呼ばれる）----
+  --send)
+    listfile="${2:-}"
+    [ -f "$listfile" ] || exit 0
+    target=$(tmux display-message -p '#{pane_id}')          # popup内から見た=呼び出し元ペイン
+    cmd=$(tmux display-message -p -t "$target" '#{pane_current_command}')
+    payload=""
+    # grep結果(file:line:col:text)はfile部分を取り出し、重複は除去
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      case "$cmd" in
+        *claude*|*node*|*aider*|*python*) ref="@$f" ;;
+        *) ref="$(printf '%q' "$f")" ;;
+      esac
+      payload="${payload:+$payload }$ref"
+    done < <(sed 's/:[0-9].*$//' "$listfile" | awk 'NF && !seen[$0]++')
+    [ -n "$payload" ] && tmux send-keys -t "$target" "$payload "
+    ;;
+
+  # ---- grep モード（全文検索）----
+  grep)
+    : | fzf --ansi --multi --disabled \
+      --prompt 'grep> ' \
+      --header 'Ctrl-s:fileモード  Enter:送信  Tab:複数選択' \
+      --delimiter : \
+      --bind "start:reload:$RG_GREP {q} 2>/dev/null || true" \
+      --bind "change:reload:sleep 0.1; $RG_GREP {q} 2>/dev/null || true" \
+      --bind "ctrl-s:become($SELF files)" \
+      --bind "enter:become($SELF --send {+f})" \
+      --preview 'bat --style=numbers --color=always --highlight-line {2} {1} 2>/dev/null || cat {1}' \
+      --preview-window 'right,60%,border-left,+{2}+3/3'
+    ;;
+
+  # ---- file モード（既定）----
+  *)
+    rg --files --hidden --glob '!.git/*' 2>/dev/null | fzf --ansi --multi \
+      --prompt 'files> ' \
+      --header 'Ctrl-s:grepモード  Enter:送信  Tab:複数選択' \
+      --bind "ctrl-s:become($SELF grep)" \
+      --bind "enter:become($SELF --send {+f})" \
+      --preview 'bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}' \
+      --preview-window 'right,60%,border-left'
+    ;;
 esac
-[ -z "$target_pane" ] && { echo "送信先ペインを特定できませんでした"; sleep 1; exit 1; }
-
-# ファイル一覧（rg優先、なければfind）。bat でプレビュー。複数選択可（Tab）。
-list_cmd='rg --files --hidden --glob "!.git/*"'
-command -v rg >/dev/null 2>&1 || list_cmd='find . -type f -not -path "*/.git/*"'
-
-preview='bat --style=numbers --color=always --line-range :300 {} 2>/dev/null || cat {}'
-command -v bat >/dev/null 2>&1 || preview='cat {}'
-
-selected=$(eval "$list_cmd" \
-  | fzf --multi \
-        --height 100% \
-        --preview "$preview" \
-        --preview-window 'right,60%,border-left' \
-        --prompt 'file> ' \
-        --header 'Enter:送信  Tab:複数選択  Esc:中止') || exit 0
-[ -z "$selected" ] && exit 0
-
-# 呼び出し元ペインで動いているコマンドで送信形式を切り替え
-cmd=$(tmux display-message -p -t "$target_pane" '#{pane_current_command}')
-
-payload=""
-while IFS= read -r f; do
-  [ -z "$f" ] && continue
-  case "$cmd" in
-    *claude*|*node*|*aider*|*python*) ref="@$f" ;;          # AIエージェント → @path
-    *) ref="$(printf '%q' "$f")" ;;                          # 通常シェル → エスケープ済み
-  esac
-  payload="${payload:+$payload }$ref"
-done <<< "$selected"
-
-# 末尾スペース付きで送信（Enterは送らない＝続けて入力・確認できる）
-tmux send-keys -t "$target_pane" "$payload "
+exit 0
