@@ -1,0 +1,11 @@
+tags
+test.sh
+.luarc.json
+nvim
+
+spell/
+
+# 個人fork: プラグイン版を固定するため nvim-pack-lock.json を追跡する（:help vim.pack-lockfile）
+# nvim-pack-lock.json
+
+.DS_Store

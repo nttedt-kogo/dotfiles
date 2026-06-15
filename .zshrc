@@ -1,5 +1,8 @@
 # Path
-export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# システムの標準パス(/usr/bin等)を明示的に含める。
+# 引き継いだ$PATHが壊れていても(tmuxやexec zsh経由で/usr/binが抜ける事がある)復旧できるようにする。
+typeset -U path PATH   # 重複エントリを自動で除去
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
 
 # Oh My Zsh
 export ZSH="$HOME/.oh-my-zsh"
@@ -118,5 +121,28 @@ mkcd() { mkdir -p "$1" && cd "$1"; }
 # mermaid図をASCII/Unicodeアートで表示（画像不要・サイズ切れなし・軽量）
 # 使い方: mma diagram.mmd    （stdinは mermaid-ascii -f - ）
 alias mma='mermaid-ascii -f'
+
+# 作業レイアウトを一発起動（新規tmuxウィンドウ "dev" を作り3分割）
+#   dev        : 左=Claude / 右上=Claude / 右下=Claude
+#   dev nvim   : 左=nvim   / 右上=Claude / 右下=Claude
+# 全ペインとも現在のディレクトリで開く
+dev() {
+  if [ -z "$TMUX" ]; then echo "dev: tmux セッションの中で実行してください"; return 1; fi
+  local left_cmd
+  case "${1:-claude}" in
+    claude|c) left_cmd="claude" ;;
+    nvim|n)   left_cmd="nvim ." ;;
+    *) echo "usage: dev [claude|nvim]"; return 1 ;;
+  esac
+  # 注意: zshでは変数名 path は PATH と連動する特別変数。絶対に使わないこと
+  local dir="$PWD" pl pt pb
+  pl=$(tmux new-window   -P -F '#{pane_id}' -c "$dir" -n dev)   # 左ペイン
+  pt=$(tmux split-window -h -P -F '#{pane_id}' -t "$pl" -c "$dir")  # 右上
+  pb=$(tmux split-window -v -P -F '#{pane_id}' -t "$pt" -c "$dir")  # 右下
+  tmux send-keys -t "$pl" "$left_cmd" C-m
+  tmux send-keys -t "$pt" "claude" C-m
+  tmux send-keys -t "$pb" "claude" C-m
+  tmux select-pane -t "$pl"
+}
 
 export DISPLAY=:10
