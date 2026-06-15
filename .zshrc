@@ -122,9 +122,10 @@ mkcd() { mkdir -p "$1" && cd "$1"; }
 # 使い方: mma diagram.mmd    （stdinは mermaid-ascii -f - ）
 alias mma='mermaid-ascii -f'
 
-# 作業レイアウトを一発起動（新規tmuxウィンドウ "dev" を作り3分割）
-#   dev        : 左=Claude / 右上=Claude / 右下=Claude
-#   dev nvim   : 左=nvim   / 右上=Claude / 右下=Claude
+# 作業レイアウトを一発起動（新規tmuxウィンドウ "dev"）
+#   レイアウト: 左=エディタ / 右上=Claude / 右下=Claude / 下段=全幅シェル
+#   dev        : 左=Claude
+#   dev nvim   : 左=nvim
 # 全ペインとも現在のディレクトリで開く
 dev() {
   if [ -z "$TMUX" ]; then echo "dev: tmux セッションの中で実行してください"; return 1; fi
@@ -135,14 +136,16 @@ dev() {
     *) echo "usage: dev [claude|nvim]"; return 1 ;;
   esac
   # 注意: zshでは変数名 path は PATH と連動する特別変数。絶対に使わないこと
-  local dir="$PWD" pl pt pb
-  pl=$(tmux new-window   -P -F '#{pane_id}' -c "$dir" -n dev)   # 左ペイン
-  pt=$(tmux split-window -h -P -F '#{pane_id}' -t "$pl" -c "$dir")  # 右上
-  pb=$(tmux split-window -v -P -F '#{pane_id}' -t "$pt" -c "$dir")  # 右下
-  tmux send-keys -t "$pl" "$left_cmd" C-m
-  tmux send-keys -t "$pt" "claude" C-m
-  tmux send-keys -t "$pb" "claude" C-m
-  tmux select-pane -t "$pl"
+  local dir="$PWD" pe prt prb psh
+  pe=$(tmux new-window    -P -F '#{pane_id}' -c "$dir" -n dev)             # 左=エディタ
+  psh=$(tmux split-window -v -l 8 -P -F '#{pane_id}' -t "$pe"  -c "$dir")  # 下段=全幅シェル(先に切り出す)
+  prt=$(tmux split-window -h      -P -F '#{pane_id}' -t "$pe"  -c "$dir")  # 右上=Claude
+  prb=$(tmux split-window -v      -P -F '#{pane_id}' -t "$prt" -c "$dir")  # 右下=Claude
+  tmux send-keys -t "$pe"  "$left_cmd" C-m
+  tmux send-keys -t "$prt" "claude" C-m
+  tmux send-keys -t "$prb" "claude" C-m
+  # 下段シェル(psh)は素のまま（コマンド実行・ログ確認用）
+  tmux select-pane -t "$pe"
 }
 
 export DISPLAY=:10
