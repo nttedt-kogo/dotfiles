@@ -114,4 +114,27 @@ alias grep='grep --color=auto'
 
 # 便利な関数
 mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# mermaid図をASCII/Unicodeアートで表示（画像不要・サイズ切れなし・日常使い向け）
+# 使い方: mma diagram.mmd    （stdinは mermaid-ascii -f - ）
+alias mma='mermaid-ascii -f'
+
+# mermaid図をターミナルにsixel画像で表示（mmdc変換 + chafa表示／綺麗だがサイズ制約あり）
+# 使い方: mmd diagram.mmd [表示幅(セル数)]   例: mmd a.mmd 160
+mmd() {
+  if [ -z "$1" ] || [ ! -f "$1" ]; then
+    echo "usage: mmd <file.mmd> [width_cols]"; return 1
+  fi
+  local size="${2:-${COLUMNS:-120}}"   # 省略時はペイン幅いっぱい
+  local out
+  out="$(mktemp --suffix=.png)" || return 1
+  # -s 3: 3倍解像度で描画(くっきり) / -b white: 背景白で見やすく
+  if mmdc -p ~/.config/mermaid/puppeteer-config.json -i "$1" -o "$out" -s 3 -b white >/dev/null 2>&1; then
+    chafa -f sixel --size="$size" "$out"
+  else
+    echo "mmd: 変換に失敗しました ($1)"; rm -f "$out"; return 1
+  fi
+  rm -f "$out"
+}
+
 export DISPLAY=:10
