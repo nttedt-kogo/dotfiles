@@ -49,12 +49,23 @@ preview() {
   ' "$f" 2>/dev/null | grep -v '^[[:space:]]*$' | bat --language=md --color=always --style=plain 2>/dev/null
 }
 
-# 選択セッションを呼び出し元ペインで再開
+# 選択セッションを「呼び出し元ペインのまま」再開する。
+#   - シェルのペイン  : その場で claude --resume を実行（終了後はシェルに戻る）
+#   - claude等のペイン: respawn-pane でプロセスを置き換えて同じペインでresume
+# resume先はセッションが記録している正しいcwd(プロジェクト)を使う。
 resume() {
-  local f="$1" sid target
+  local f="$1" sid cwd target cmd
   sid=$(basename "$f" .jsonl)
+  cwd=$(jq -r 'select(.cwd != null) | .cwd' "$f" 2>/dev/null | head -1)
+  [ -d "$cwd" ] || cwd="$HOME"
   target=$(tmux display-message -p '#{pane_id}')
-  tmux send-keys -t "$target" "claude --resume $sid" C-m
+  cmd=$(tmux display-message -p -t "$target" '#{pane_current_command}')
+  case "$cmd" in
+    zsh|bash|fish|sh|ksh|dash)
+      tmux send-keys -t "$target" "claude --resume $sid" C-m ;;
+    *)
+      tmux respawn-pane -k -t "$target" -c "$cwd" "claude --resume $sid" ;;
+  esac
 }
 
 case "${1:-}" in
