@@ -148,4 +148,41 @@ dev() {
   tmux select-pane -t "$pe"
 }
 
+# ===== git worktree ヘルパー（複数ブランチを隔離＝Claude並列に最適）=====
+# worktree置き場: <repo親>/<repo名>.wt/<branch>
+#   wt <branch>   : worktree作成(無ければブランチも作成)。tmux内なら新ウィンドウで開く
+#   wtl           : worktree一覧
+#   wtrm <branch> : worktree削除
+_wt_dir() {
+  local root; root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  printf '%s/%s.wt/%s' "$(dirname "$root")" "$(basename "$root")" "$1"
+}
+wt() {
+  local branch="${1:-}"
+  [ -z "$branch" ] && { echo "usage: wt <branch>"; return 1; }
+  local root name dir
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "wt: git リポジトリ内で実行してください"; return 1; }
+  name=$(basename "$root")
+  dir=$(_wt_dir "$branch") || return 1
+  if [ ! -d "$dir" ]; then
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      git worktree add "$dir" "$branch" || return 1       # 既存ブランチ
+    else
+      git worktree add -b "$branch" "$dir" || return 1    # 新規ブランチ
+    fi
+  fi
+  if [ -n "${TMUX:-}" ]; then
+    tmux new-window -c "$dir" -n "${name}-${branch}"       # 並列用に新ウィンドウ
+  else
+    cd "$dir"
+  fi
+}
+alias wtl='git worktree list'
+wtrm() {
+  local branch="${1:-}"
+  [ -z "$branch" ] && { echo "usage: wtrm <branch>"; return 1; }
+  local dir; dir=$(_wt_dir "$branch") || return 1
+  git worktree remove "$dir" && echo "removed worktree: $dir"
+}
+
 export DISPLAY=:10
