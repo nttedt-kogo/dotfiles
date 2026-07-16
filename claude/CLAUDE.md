@@ -39,6 +39,8 @@ motoko が盤面を把握し、必要に応じて togusa / bato / tachikoma を 
 /agmsg actas togusa した後、~/dotfiles/claude/team-roles.md を読んで自分の役割・boundaries を確認し、motoko に読了 ack を送って指示を待って
 ```
 
+**モデル/effort の注意**: 開始フレーズではモデルは切り替わらない (エージェントは自分のモデルを変えられない)。新セッションは保存済みデフォルトで立ち上がり、`/model` は打つたびにデフォルトも上書きするので、worker で打つと次の motoko まで変わってしまう。**worker は motoko からの spawn (`spawn.sh claude-code <name> --model sonnet ...`) が推奨** — プロセス単位の指定でデフォルトを汚さない。手動起動時のみ `/model` で都度設定 (次回 motoko 起動時にデフォルトを Fable 5 に戻すのを忘れない)。
+
 ### 運用メモ
 
 - agmsg 本体: `~/.agents/skills/agmsg/` (b821759 以降、spawn/despawn あり)。更新時は clone した repo で `./install.sh --update` (DB・team 設定は保持される)
