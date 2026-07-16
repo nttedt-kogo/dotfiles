@@ -1,0 +1,4 @@
+# spawn.sh が claude-code type の spawn 時に常時付与する追加 CLI 引数
+# (operator 指示 2026-07-16: worker は permission prompt で止まらないようにする)
+claude-code:
+  --dangerously-skip-permissions: true

@@ -34,6 +34,7 @@ link ".tmux.conf"      "$HOME/.tmux.conf"
 link ".zshrc"          "$HOME/.zshrc"
 link "nvim"            "$HOME/.config/nvim"
 link "claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+link "agmsg/spawn_options.yaml" "$HOME/.agmsg/config/spawn_options.yaml"
 
 # ---- 2. バイナリ導入（~/.local、sudo不要）---------------------------------
 if [ "$(uname -m)" != "x86_64" ]; then
