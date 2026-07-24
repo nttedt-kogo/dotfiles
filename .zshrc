@@ -186,3 +186,15 @@ wtrm() {
 }
 
 export DISPLAY=:10
+
+# --- WSL: 遅い /mnt/c 側に着地したら ext4 のホームへ自動移動 (2026-07-25) ---
+# `wsl` を Windows のカレント(通常 C:\Users\kazuya.kogo)から起動すると
+# /mnt/c/... に着地し、AV3重のscan-on-closeでファイルI/Oが激遅になる。
+# 既定の着地点だった場合だけ ext4 のホーム(~)へ移す。意図的に /mnt/c へ
+# cd した場合や、そこで開くサブシェルには影響しない(着地点ピンポイント判定)。
+if [[ -o interactive ]]; then
+  case "$PWD" in
+    /mnt/c/Users/kazuya.kogo|/mnt/c/WINDOWS/system32|/mnt/c/Windows/System32)
+      cd ~ ;;
+  esac
+fi
