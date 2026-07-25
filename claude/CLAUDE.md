@@ -14,6 +14,34 @@
 
 ペインIDは各ペイン上部のボーダーに `%12` 形式で表示されている（`.tmux.conf` の pane-border-format）。
 
+## agmsg: team member の spawn (全プロジェクト共通・operator 方針 2026-07-25)
+
+**team member は必ず bypass permissions モードで spawn する** (`claude --dangerously-skip-permissions`)。
+
+理由: 通常モードで spawn すると、新セッションが最初の `/agmsg actas <name>` を実行した時点で
+「Contains shell syntax that cannot be statically analyzed」の許可プロンプトに掛かって**起動直後に固まる**。
+operator が各ペインを手で承認して回るまで team が動かない (2026-07-25 に実際に発生し、
+spawn.sh の readiness handshake が `status=timeout` で終わった)。
+
+**注意: agmsg の `spawn.sh` には bypass のオプションが無い**。manifest (`drivers/types/claude-code/type.conf`)
+の `cli=claude` を `command -v` で解決して直接起動する作りで、追加フラグの pass-through が無い
+(`--model` だけが例外)。manifest は read-only データなので書き換えない。
+
+したがって **tmux から直接起動する** (spawn.sh の direct-CLI 起動と同じ形にフラグを足しただけ):
+
+```bash
+# 事前に role を join しておく (spawn.sh がやっていた前処理)
+~/.agents/skills/agmsg/scripts/join.sh <team> <name> claude-code <project>
+
+tmux new-window -d -n "<name>" -c <project> \
+  "claude --dangerously-skip-permissions --model <opus|sonnet> '/agmsg actas <name>'"
+```
+
+- `--model` はプロセス単位なので**保存済みデフォルトを汚さない** (下記のモデル注意と同じ理由で `/model` より優先)
+- 死んだペインの後始末は `reset.sh` ではなく pane kill + 必要なら `join.sh` で再登録する。
+  **`reset.sh <project> claude-code <name>` は registration ごと消す** ので、
+  actas lock を外すだけのつもりで使うと team から抜ける (メッセージ履歴は残る)
+
 ## uav-dev-env マルチエージェント体制 (agmsg team: airgrow)
 
 対象プロジェクト: `~/dev/uav-dev-env` のみ。他プロジェクトには適用しない。
