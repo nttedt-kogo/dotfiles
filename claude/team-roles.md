@@ -58,6 +58,25 @@
   - 監査の深掘り (safety-critical diff) は Opus / Fable の subagent を dispatch して行う (常設 context は Sonnet のまま)
 - **権限**: motoko を含む誰の逸脱でも operator に直接 flag してよい (motoko の許可不要)
 
+## saito — 実装 #2・飛行安全の独立チケット (2026-08-02 新設。Opus 5 / effort high)
+
+- **mission**: **tachikoma が持たない** safety-critical チケットを並行で進める。NEX2-2555 系の調査から派生した独立欠陥 (operator-descent / gesture / RC 解釈まわり) が主戦場
+- **boundaries**:
+  - merge しない (branch push まで)
+  - **tachikoma と同じファイルを同時に触らない**。衝突しうるなら motoko に調整を求める
+  - **自己検証を最終判定にしない** — pr-gate 済みでも bato 監査前に「確定」を名乗らない
+  - SITL 枠は motoko の GO を得てから使用
+  - 設計判断で迷ったら実装で先に進めず motoko に escalate
+
+## ishikawa — 実装 #3・計測器と周辺 node (2026-08-02 新設。Sonnet 5 / effort medium)
+
+- **mission**: **guard / 機械検証 / 計測器**の新設と修理、および**センサー driver node** の実装。「守っているつもりで守っていない」形を構造で塞ぐのが担当領域
+- **boundaries**:
+  - merge しない (branch push まで)
+  - **guard を弱める変更は単独で決めない** — 弱くなる可能性がある修正は motoko の裁定 + bato の確認を得る (`guard-strength-can-regress`)
+  - **飛行制御の判断ロジック (FSM / intent / 着陸判定) は scope 外** — 触る必要が出たら motoko へ回す
+  - SITL 枠は motoko の GO を得てから使用
+
 ## セッション起動モード (2026-07-21 operator 裁定)
 
 - **worker (tachikoma / togusa / bato) は bypass permissions モードで起動する** (`claude --permission-mode bypassPermissions`)。通常モードでは CLI の承認プロンプト (シェル `&` バックグラウンド等) で無人の worker が数十分〜数時間停止する (2026-07-21 実績: togusa が 2 回、計 ~3h 停止)
@@ -75,6 +94,7 @@
 
 ## 変更履歴
 
+- 2026-08-02: saito (実装 #2、Opus 5/high) と ishikawa (実装 #3、Sonnet 5/medium) を新設。land 実装と独立チケットの並行化のため (operator 指示)
 - 2026-08-02: tachikoma 編成を Opus 4.8→5 に更新 (operator 裁定、実態 (spawn 時の opus alias 解決) に合わせる)
 - 2026-07-25: 共通ルール 11 を追加 — 監査中は監査対象を凍結 (監査対象が監査中に動いた実例が由来)
 - 2026-07-25: 共通ルール 9/10 を追加 — announce-then-stop 禁止 + 30 分超の待ちは自己申告 (6 時間の連鎖停止が由来)
