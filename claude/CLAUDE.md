@@ -48,7 +48,7 @@ tmux new-window -d -n "<name>" -c <project> \
 
 - **役割定義の SSOT は `~/dotfiles/claude/team-roles.md`**。編成・各役割の mission / boundaries / 検証ゲートフロー・merge 規律はすべてそこに書いてある。このファイルと重複記載しない
 - どの役割のセッションも、**起動直後 (と clean handoff 再開直後) に team-roles.md を読み、motoko に読了 ack を送ってから作業に入る**
-- 編成: motoko=統括 (Fable 5/high) / tachikoma=実装 lead (Opus 4.8/high) / togusa=SITL・harness (Sonnet 5/medium) / bato=検証専任 (Sonnet 5/high)。1 役割 = 1 セッション (agmsg actas lock が強制)。旧名: 2b→motoko / 9s→togusa / a2→bato / emil→tachikoma (2026-07-16 rename、Linear 過去コメントは旧名)
+- 編成: motoko=統括 (Fable 5/high) / tachikoma=実装 lead (Opus 5/high) / togusa=SITL・harness (Sonnet 5/medium) / bato=検証専任 (Sonnet 5/high)。1 役割 = 1 セッション (agmsg actas lock が強制)。旧名: 2b→motoko / 9s→togusa / a2→bato / emil→tachikoma (2026-07-16 rename、Linear 過去コメントは旧名)
 - merge / main への push は operator の動詞明示指示があるときのみ (詳細・経緯は team-roles.md 共通ルール 1)
 
 ### セッション開始フレーズ (operator 用)
