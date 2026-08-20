@@ -185,7 +185,11 @@ wtrm() {
   git worktree remove "$dir" && echo "removed worktree: $dir"
 }
 
-export DISPLAY=:10
+# GUI DISPLAY の動的検出 (opt-in、自動 export はしない)。実体: ~/.local/bin/gui-env
+# gdisp        : 現シェルに DISPLAY/XAUTHORITY を取り込む
+# with-gui CMD : そのコマンドだけ GUI 環境変数付きで実行 (現シェルは汚さない)
+gdisp() { eval "$(gui-env)" && echo "DISPLAY=$DISPLAY"; }
+with-gui() { ( eval "$(gui-env)" && exec "$@" ); }
 
 # --- WSL: 遅い /mnt/c 側に着地したら ext4 のホームへ自動移動 (2026-07-25) ---
 # `wsl` を Windows のカレント(通常 C:\Users\kazuya.kogo)から起動すると
