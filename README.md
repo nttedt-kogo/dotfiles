@@ -112,5 +112,5 @@ dotfiles/
 
 ## 注意事項
 
-- `.zshrc` 末尾の `export DISPLAY=:10` は VNC :10 を立てている前提。別運用にする場合は条件分岐に変える
+- GUI 表示先は `.zshrc` の `gdisp` / `with-gui` が実行時に検出する。実体の `~/.local/bin/gui-env` は install.sh の対象外なので、新しい PC では手動で配置する
 - Claude Code の permissions (`.claude/settings.local.json`) は symlink なので、新しい permission を追加したら dotfiles を commit して全 PC に反映できる
