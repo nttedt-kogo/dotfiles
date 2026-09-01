@@ -116,7 +116,6 @@
       "Bash(cd *)",
       "Bash(set *)",
       "Bash(git config *)",
-      "Bash(command -v agmsg)",
       "Bash(zsh -i -c 'echo ZSH_OK; echo $PATH; command -v eza bat fd fzf nvim lazygit mermaid-ascii; ls >/dev/null && echo alias_ls_ok')",
       "Bash(gh ssh-key *)",
       "Bash(ssh -T git@github.com)",
