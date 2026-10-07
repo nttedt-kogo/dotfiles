@@ -76,12 +76,12 @@ export NVM_DIR="$HOME/.nvm"
 export EDITOR='vim'
 
 # eza (モダンなls)
-alias ls='eza --icons'
-alias ll='eza -alh --icons --git'
-alias la='eza -a --icons'
-alias l='eza --icons'
-alias lt='eza --tree --icons --level=2'
-alias lta='eza --tree --icons -a --level=2'
+alias ls='eza --icons=auto'
+alias ll='eza -alh --icons=auto --git'
+alias la='eza -a --icons=auto'
+alias l='eza --icons=auto'
+alias lt='eza --tree --icons=auto --level=2'
+alias lta='eza --tree --icons=auto -a --level=2'
 
 # bat (モダンなcat)
 alias cat='bat --paging=never'
